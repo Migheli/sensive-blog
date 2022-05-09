@@ -9,6 +9,28 @@ class PostQuerySet(models.QuerySet):
         posts_at_year = self.filter(published_at__year=year).order_by('published_at')
         return posts_at_year
 
+    def popular(self):
+        posts = self.all().annotate(num_likes=Count('likes'))
+        tags_by_popularity = posts.order_by('-num_likes')
+        return tags_by_popularity
+
+    def fetch_with_comments_count(self):
+        '''
+        Функция позволяет оптимизировать запросы, чтобы избежать использования 2 annotate.
+        Использование 2 annotate нежелательно из-за поглощения большого количества ресурсов.
+        В данной функции добавление полей num_comments происходит на уровне Python без обращения к БД,
+        что сокращает количество запросов к БД и, соответственно, время исполнения.
+        '''
+        #posts = Post.objects.prefetch_related('author')
+        related_posts_id = [post.id for post in self]
+        posts_with_comments = Post.objects.filter(id__in=related_posts_id).annotate(num_comments=Count('comments'))
+        ids_and_comments = posts_with_comments.values_list('id', 'num_comments')
+        count_for_id = dict(ids_and_comments)
+
+        for post in self:
+            post.num_comments = count_for_id[post.id]
+        return list(self)
+
 
 class Post(models.Model):
     title = models.CharField('Заголовок', max_length=200)
@@ -49,8 +71,6 @@ class TagQuerySet(models.QuerySet):
 
     def popular(self):
         tags = self.all().annotate(num_posts=Count('posts'))
-#       tags = self.all().annotate(num_posts=Count('posts'))
-
         tags_by_popularity = tags.order_by('-num_posts')
         return tags_by_popularity
 
