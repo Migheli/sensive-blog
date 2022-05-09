@@ -3,8 +3,8 @@ from django.db.models import Count
 from blog.models import Comment, Post, Tag
 
 
-def get_related_posts_count(tag):
-    return tag.posts.count()
+#def get_related_posts_count(tag):
+#    return tag.posts.count()
 
 
 def serialize_post(post):
@@ -38,7 +38,7 @@ def serialize_post_optimized(post):
 def serialize_tag(tag):
     return {
         'title': tag.title,
-        'posts_with_tag': len(Post.objects.filter(tags=tag)),
+        'posts_with_tag': tag.posts.count(),
     }
 
 
@@ -56,9 +56,9 @@ def index(request):
     for post in related_posts:
         post.num_comments = count_for_id[post.id]
 
-    tags = Tag.objects.annotate(num_posts=Count('posts'))
-    popular_tags = tags.order_by('-num_posts')
-    most_popular_tags = popular_tags[:5]
+    #tags = Tag.objects.annotate(num_posts=Count('posts'))
+    #popular_tags = tags.order_by('-num_posts')
+    most_popular_tags = Tag.objects.popular()[:5]
 
     context = {
         'most_popular_posts': [
@@ -98,9 +98,9 @@ def post_detail(request, slug):
         'tags': [serialize_tag(tag) for tag in related_tags],
     }
 
-    all_tags = Tag.objects.all()
-    popular_tags = sorted(all_tags, key=get_related_posts_count)
-    most_popular_tags = popular_tags[-5:]
+    #all_tags = Tag.objects.all()
+    #popular_tags = sorted(all_tags, key=get_related_posts_count)
+    most_popular_tags = Tag.objects.popular()[:5]
 
     most_popular_posts = []  # TODO. Как это посчитать?
 
@@ -117,9 +117,9 @@ def post_detail(request, slug):
 def tag_filter(request, tag_title):
     tag = Tag.objects.get(title=tag_title)
 
-    all_tags = Tag.objects.all()
-    popular_tags = sorted(all_tags, key=get_related_posts_count)
-    most_popular_tags = popular_tags[-5:]
+    #all_tags = Tag.objects.all()
+    #popular_tags = sorted(all_tags, key=get_related_posts_count)
+    most_popular_tags = Tag.objects.popular()[:5]
 
     most_popular_posts = []  # TODO. Как это посчитать?
 
