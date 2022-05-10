@@ -39,16 +39,22 @@ def serialize_tag(tag):
 
 
 def index(request):
+
     posts = Post.objects.prefetch_related('author', 'tags')
     most_popular_posts = posts.popular()[:5].fetch_with_comments_count()
-    most_fresh_posts = posts[:5].fetch_with_comments_count()
+    most_fresh_posts = posts[:5].prefetch_related('tags').fetch_with_comments_count()
+
+    #most_popular_tags = Tag.objects.annotate(num_posts=Count('posts')).order_by('-num_posts')[:5]
+
     most_popular_tags = Tag.objects.popular()[:5]
 
     context = {
+
         'most_popular_posts': [
             serialize_post_optimized(post) for post in most_popular_posts
         ],
         'page_posts': [serialize_post_optimized(post) for post in most_fresh_posts],
+
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
 
     }
