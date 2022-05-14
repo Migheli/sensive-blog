@@ -129,7 +129,7 @@ def tag_filter(request, tag_title):
         'tag': tag.title,
         'popular_tags': [serialize_tag_optimized(tag) for tag in most_popular_tags],
         'posts': [serialize_post(post) for post in related_posts],
-        'most_popular_posts': [serialize_post(post) for post in most_popular_posts],
+        'most_popular_posts': [serialize_post_optimized(post) for post in most_popular_posts],
     }
     return render(request, 'posts-list.html', context)
 
