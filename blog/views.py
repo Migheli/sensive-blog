@@ -67,7 +67,12 @@ def index(request):
 
 
 def post_detail(request, slug):
-    post = Post.objects.get(slug=slug)
+
+    prefetch = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
+    posts = Post.objects.prefetch_related('author', prefetch)
+
+    prefetched_tags = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
+    post = posts.get(slug=slug)
     comments = Comment.objects.filter(post=post)
     serialized_comments = []
     for comment in comments:
@@ -78,6 +83,7 @@ def post_detail(request, slug):
         })
 
     likes = post.likes.all()
+
 
     related_tags = post.tags.all()
 
@@ -90,7 +96,7 @@ def post_detail(request, slug):
         'image_url': post.image.url if post.image else None,
         'published_at': post.published_at,
         'slug': post.slug,
-        'tags': [serialize_tag(tag) for tag in related_tags],
+        'tags': [serialize_tag_optimized(tag) for tag in related_tags],
     }
 
     most_popular_tags = Tag.objects.popular()[:5]
