@@ -1,3 +1,4 @@
+import prefetch as prefetch
 from django.shortcuts import render
 from django.db.models import Count
 from blog.models import Comment, Post, Tag
@@ -68,12 +69,12 @@ def index(request):
 
 def post_detail(request, slug):
 
-    prefetch = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
-    posts = Post.objects.prefetch_related('author', prefetch)
-
     prefetched_tags = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
+    posts = Post.objects.prefetch_related('author', 'comments', prefetched_tags)
     post = posts.get(slug=slug)
-    comments = Comment.objects.filter(post=post)
+
+
+    comments = post.comments.all()
     serialized_comments = []
     for comment in comments:
         serialized_comments.append({
