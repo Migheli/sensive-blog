@@ -50,7 +50,7 @@ def post_detail(request, slug):
     prefetched_tags = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
     posts = Post.objects.prefetch_related('author', 'comments', prefetched_tags).annotate(num_likes=Count('likes'))
     post = posts.get(slug=slug)
-    comments = post.comments.all().prefetch_related('author')
+    comments = post.comments.prefetch_related('author')
 
     serialized_comments = []
     for comment in comments:
