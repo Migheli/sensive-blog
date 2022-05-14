@@ -3,7 +3,8 @@ from django.shortcuts import render
 from django.db.models import Count
 from blog.models import Comment, Post, Tag
 from django.db.models import Prefetch
-from django.db.models import Q
+from django.contrib.auth.models import User
+
 
 def serialize_post(post):
     return {
@@ -70,10 +71,12 @@ def index(request):
 def post_detail(request, slug):
 
     prefetched_tags = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
-    posts = Post.objects.prefetch_related(prefetched_tags).annotate(num_likes=Count('likes'))
+    posts = Post.objects.prefetch_related('author', prefetched_tags).annotate(num_likes=Count('likes'))
     post = posts.get(slug=slug)
 
+    #prefetch = Prefetch('author', queryset=User.objects.all())
     comments = post.comments.all()
+
     serialized_comments = []
     for comment in comments:
         serialized_comments.append({
@@ -97,14 +100,12 @@ def post_detail(request, slug):
     }
 
     most_popular_tags = Tag.objects.popular()[:5]
-    prefetched_tags = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
-    posts = Post.objects.prefetch_related('author', prefetched_tags)
     most_popular_posts = posts.popular()[:5].fetch_with_comments_count()
 
 
     context = {
         'post': serialized_post,
-        'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
+        'popular_tags': [serialize_tag_optimized(tag) for tag in most_popular_tags],
         'most_popular_posts': [
             serialize_post_optimized(post) for post in most_popular_posts
         ],
