@@ -1,9 +1,7 @@
-import prefetch as prefetch
 from django.shortcuts import render
 from django.db.models import Count
-from blog.models import Comment, Post, Tag
+from blog.models import Post, Tag
 from django.db.models import Prefetch
-from django.contrib.auth.models import User
 
 
 def serialize_post(post):
@@ -53,7 +51,7 @@ def post_detail(request, slug):
     posts = Post.objects.prefetch_related('author', 'comments', prefetched_tags).annotate(num_likes=Count('likes'))
     post = posts.get(slug=slug)
 
-    #prefetch = Prefetch('author', queryset=User.objects.all())
+    # prefetch = Prefetch('author', queryset=User.objects.all())
     comments = post.comments.all().prefetch_related('author')
 
     serialized_comments = []

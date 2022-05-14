@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.db.models import Count
 
+
 class PostQuerySet(models.QuerySet):
 
     def year(self, year):
@@ -15,12 +16,14 @@ class PostQuerySet(models.QuerySet):
         return tags_by_popularity
 
     def fetch_with_comments_count(self):
+
         '''
         Функция позволяет оптимизировать запросы, чтобы избежать использования 2 annotate.
         Использование 2 annotate нежелательно из-за поглощения большого количества ресурсов.
         В данной функции добавление полей num_comments происходит на уровне Python без обращения к БД,
         что сокращает количество запросов к БД и, соответственно, время исполнения.
         '''
+
         related_posts_id = [post.id for post in self]
         posts_with_comments = Post.objects.filter(id__in=related_posts_id).annotate(num_comments=Count('comments'))
         ids_and_comments = posts_with_comments.values_list('id', 'num_comments')

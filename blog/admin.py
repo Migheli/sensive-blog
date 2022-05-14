@@ -17,4 +17,3 @@ class TagAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     raw_id_fields = ['post', 'author']
     list_display = ['post', 'author', 'text']
-
