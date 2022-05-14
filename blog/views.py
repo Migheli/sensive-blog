@@ -121,14 +121,15 @@ def tag_filter(request, tag_title):
     #                         .prefetch_related('author')[:5] \
     #                         .fetch_with_comments_count()
 
-    related_posts = tag.posts.all()[:20].prefetch_related('author')\
+    prefetch = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
+    related_posts = tag.posts.all()[:20].prefetch_related('author', prefetch)\
                                         .fetch_with_comments_count()
 
 
     context = {
         'tag': tag.title,
         'popular_tags': [serialize_tag_optimized(tag) for tag in most_popular_tags],
-        'posts': [serialize_post(post) for post in related_posts],
+        'posts': [serialize_post_optimized(post) for post in related_posts],
         'most_popular_posts': [serialize_post_optimized(post) for post in most_popular_posts],
     }
     return render(request, 'posts-list.html', context)
