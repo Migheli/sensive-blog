@@ -22,6 +22,7 @@ class PostQuerySet(models.QuerySet):
         что сокращает количество запросов к БД и, соответственно, время исполнения.
         '''
         #posts = Post.objects.prefetch_related('author')
+
         related_posts_id = [post.id for post in self]
         #posts_with_comments = Post.objects.filter(id__in=related_posts_id).annotate(num_comments=Count('comments'))
         posts_with_comments = Post.objects.filter(id__in=related_posts_id).annotate(num_comments=Count('comments'))
@@ -32,7 +33,6 @@ class PostQuerySet(models.QuerySet):
             post.num_comments = count_for_id[post.id]
 
         return self
-
 
 
 class Post(models.Model):
