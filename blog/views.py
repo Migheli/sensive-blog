@@ -29,7 +29,7 @@ def index(request):
     prefetch = Prefetch('tags', queryset=Tag.objects.annotate(num_posts=Count('posts')))
     posts = Post.objects.prefetch_related('author', prefetch)
     most_popular_posts = posts.popular()[:5].fetch_with_comments_count()
-    most_fresh_posts = posts[:5].fetch_with_comments_count()
+    most_fresh_posts = posts[:5].select_related('author').fetch_with_comments_count()
     most_popular_tags = Tag.objects.popular()
 
     context = {
@@ -75,7 +75,7 @@ def post_detail(request, slug):
     }
 
     most_popular_tags = Tag.objects.popular()
-    most_popular_posts = posts.popular()[:5].fetch_with_comments_count()
+    most_popular_posts = posts.popular()[:5].select_related('author').fetch_with_comments_count()
 
     context = {
         'post': serialized_post,
